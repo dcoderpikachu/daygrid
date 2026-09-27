@@ -1,0 +1,900 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#F4F5F1" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#101412" media="(prefers-color-scheme: dark)">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>:root{padding-top:env(safe-area-inset-top,0px)}</style>
+</head>
+<body>
+<title>Daygrid</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Figtree:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --bg:#F4F5F1; --surface:#FFFFFF; --surface-2:#ECEEE9; --ink:#1A201C; --muted:#646E68;
+  --line:#DCE0DA; --empty:#DDE1DA; --future:#EDEFEA; --accent:#1F5A3C; --on-accent:#FFFFFF;
+  --plus:#2F7A4E; --minus:#B2452F;
+  --display:'Bricolage Grotesque','Avenir Next','Segoe UI',system-ui,sans-serif;
+  --body:'Figtree','Segoe UI',system-ui,-apple-system,sans-serif;
+  --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,monospace;
+  --r:14px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#101412; --surface:#181D1A; --surface-2:#202622; --ink:#E6EAE6; --muted:#939D97;
+    --line:#29302C; --empty:#2A312D; --future:#1B211E; --accent:#86CFA1; --on-accent:#0E1A13;
+    --plus:#7CCB97; --minus:#EE8D76; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#101412; --surface:#181D1A; --surface-2:#202622; --ink:#E6EAE6; --muted:#939D97;
+  --line:#29302C; --empty:#2A312D; --future:#1B211E; --accent:#86CFA1; --on-accent:#0E1A13;
+  --plus:#7CCB97; --minus:#EE8D76; color-scheme:dark;
+}
+[hidden]{display:none!important}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.45;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.app{max-width:520px;margin:0 auto;padding-inline:16px;padding-block:6px 104px}
+.top{display:flex;align-items:center;justify-content:space-between;padding-block:10px 6px}
+.brand{display:flex;align-items:center;gap:10px;font-family:var(--display);font-weight:700;font-size:21px;letter-spacing:-.015em}
+.mark{display:grid;grid-template-columns:repeat(3,6px);gap:2px}
+.mark i{width:6px;height:6px;border-radius:1.5px;display:block}
+.icon-btn{background:none;border:0;padding:8px;border-radius:10px;color:var(--muted);display:grid;place-items:center}
+.icon-btn:hover{background:var(--surface-2);color:var(--ink)}
+h1,h2,h3{font-family:var(--display);letter-spacing:-.015em;text-wrap:balance;margin:0}
+h2{font-size:26px;font-weight:700;line-height:1.1}
+h3{font-size:17px;font-weight:700}
+.label{font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.muted{color:var(--muted)}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.stack{display:flex;flex-direction:column;gap:14px}
+.section{display:flex;flex-direction:column;gap:22px;padding-top:8px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px}
+
+.banner{display:flex;gap:12px;align-items:center;justify-content:space-between;background:var(--surface-2);border-radius:12px;padding:10px 12px;font-size:13.5px}
+.banner button{background:var(--accent);color:var(--on-accent);border:0;border-radius:999px;padding:7px 14px;font-weight:600;white-space:nowrap}
+
+/* Today */
+.datebar{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.datebar .when{display:flex;flex-direction:column;align-items:center;text-align:center}
+.datebar .when strong{font-family:var(--display);font-size:24px;font-weight:700;letter-spacing:-.015em}
+.nav-arrow{width:40px;height:40px;border-radius:999px;border:1px solid var(--line);background:var(--surface);display:grid;place-items:center}
+.nav-arrow:disabled{opacity:.3;cursor:default}
+.weekstrip{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.weekstrip div{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px;color:var(--muted)}
+.weekstrip span{width:100%;aspect-ratio:1;max-width:38px;border-radius:7px;background:var(--empty)}
+.weekstrip span.future{background:var(--future)}
+.weekstrip span.sel{outline:2px solid var(--ink);outline-offset:2px}
+.streak{display:flex;justify-content:center;gap:6px;font-size:13px;color:var(--muted)}
+.streak b{color:var(--ink);font-weight:600}
+.q{font-size:22px}
+.scores{display:grid;grid-template-columns:repeat(11,1fr);gap:4px}
+.score{height:58px;border:0;border-radius:9px;background:var(--c);color:var(--fg);font-family:var(--mono);font-weight:500;font-size:15px;transition:opacity .15s,transform .15s;padding:0}
+.scores.has-sel .score{opacity:.42}
+.scores.has-sel .score.on{opacity:1;transform:translateY(-3px);box-shadow:0 0 0 2px var(--bg),0 0 0 4px var(--ink)}
+.scale-ends{display:flex;justify-content:space-between;font-size:11.5px;color:var(--muted);margin-top:-6px}
+.anchor{display:flex;align-items:center;gap:12px;min-height:44px}
+.anchor .dot{width:40px;height:40px;border-radius:10px;background:var(--c,var(--empty));display:grid;place-items:center;font-family:var(--mono);font-weight:500;color:var(--fg,var(--muted));flex:none}
+.anchor p{margin:0;font-size:16px;font-weight:500}
+textarea,input[type=date],input[type=number],select{width:100%;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:12px;padding:12px 14px;font:inherit}
+textarea{resize:none;min-height:74px}
+.counter{font-size:11.5px;color:var(--muted);text-align:right;margin-top:-8px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:7px 13px;font-size:13.5px;font-weight:500;display:inline-flex;align-items:center;gap:6px}
+.chip .sign{font-family:var(--mono);width:10px;text-align:center}
+.chip.plus{border-color:var(--plus);color:var(--plus);background:color-mix(in oklab,var(--plus) 10%,var(--surface))}
+.chip.minus{border-color:var(--minus);color:var(--minus);background:color-mix(in oklab,var(--minus) 10%,var(--surface))}
+.chip.pick{padding:7px 14px}
+.chip.pick.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.primary{width:100%;border:0;border-radius:14px;background:var(--accent);color:var(--on-accent);font-weight:600;font-size:16px;padding:15px}
+.primary:disabled{opacity:.35;cursor:default}
+.ghost{border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:11px 14px;font-weight:500}
+.danger{color:var(--minus)}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap}
+.btn-row>*{flex:1 1 140px}
+.otd{display:flex;flex-direction:column;gap:10px}
+.otd-item{display:flex;gap:12px;align-items:flex-start}
+.otd-item .sq{width:30px;height:30px;border-radius:7px;flex:none;display:grid;place-items:center;font-family:var(--mono);font-size:12.5px;color:var(--fg)}
+.otd-item p{margin:0}
+.otd-item small{color:var(--muted);font-size:12.5px}
+.checkin .row{display:grid;grid-template-columns:110px 1fr 28px;align-items:center;gap:10px}
+.checkin input[type=range]{width:100%}
+.checkin .v{font-family:var(--mono);text-align:right}
+
+/* Year */
+.yearbar{display:flex;align-items:center;justify-content:space-between}
+.yearbar strong{font-family:var(--display);font-size:28px}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:2px}
+.kpi b{font-family:var(--mono);font-size:19px;font-weight:500;display:flex;align-items:center;gap:6px}
+.kpi b i{width:12px;height:12px;border-radius:3px;display:inline-block}
+.kpi span{font-size:11.5px;color:var(--muted)}
+.ygrid{display:grid;grid-template-columns:26px repeat(31,minmax(0,1fr));gap:2px;align-items:center}
+.ygrid .ml{font-size:10.5px;color:var(--muted);font-weight:600}
+.ygrid .dl{font-size:9px;color:var(--muted);text-align:center;font-family:var(--mono);overflow:visible;white-space:nowrap;width:0;justify-self:center;display:flex;justify-content:center}
+.cell{aspect-ratio:1;border-radius:2.5px;background:var(--empty);border:0;padding:0;width:100%;display:block}
+.cell.future{background:var(--future)}
+.cell.void{background:none;pointer-events:none}
+.cell.today{box-shadow:0 0 0 1.5px var(--ink)}
+.legend{display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--muted)}
+.legend .bar{flex:1;height:8px;border-radius:99px}
+.legend .sw{width:10px;height:10px;border-radius:2px;display:inline-block;vertical-align:-1px;margin-right:4px}
+.legend-row{display:flex;gap:14px;flex-wrap:wrap;font-size:11.5px;color:var(--muted)}
+
+/* Life */
+.lifehead{display:flex;flex-direction:column;gap:6px}
+.lifehead p{margin:0;color:var(--muted);max-width:60ch}
+#lifeCanvas{width:100%;display:block;touch-action:manipulation}
+.lifeinfo{min-height:42px;font-size:13.5px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+
+/* Insights */
+.seg{display:grid;grid-template-columns:repeat(4,1fr);background:var(--surface-2);border-radius:12px;padding:3px;gap:3px}
+.seg button{border:0;background:none;border-radius:9px;padding:8px 4px;font-size:13px;font-weight:500;color:var(--muted)}
+.seg button.on{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgb(0 0 0 / .08)}
+.hero{display:flex;gap:16px;align-items:center}
+.hero .swatch{width:84px;height:84px;border-radius:20px;flex:none;display:grid;place-items:center;font-family:var(--mono);font-size:26px;font-weight:500;color:var(--fg)}
+.hero p{margin:0}
+.hero .big{font-family:var(--display);font-size:20px;font-weight:700;line-height:1.2}
+.chart{width:100%;height:auto;display:block;overflow:visible}
+.chart text{fill:var(--muted);font-size:9.5px;font-family:var(--mono)}
+.chart .grid{stroke:var(--line);stroke-width:1}
+.chart .trend{fill:none;stroke:var(--ink);stroke-width:1.8;stroke-linejoin:round;stroke-linecap:round}
+.wd{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;align-items:end;height:130px}
+.wd div{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:4px;height:100%;font-size:11.5px;color:var(--muted)}
+.wd i{width:100%;max-width:34px;border-radius:6px 6px 3px 3px;display:block}
+.wd b{font-family:var(--mono);font-weight:500;color:var(--ink);font-size:11.5px}
+.facts{display:flex;flex-direction:column}
+.fact{display:flex;justify-content:space-between;gap:12px;padding-block:11px;border-top:1px solid var(--line);font-size:14px}
+.fact:first-child{border-top:0}
+.fact span:last-child{text-align:right;font-weight:500}
+.empty-note{color:var(--muted);font-size:13.5px;margin:0}
+
+/* Nav */
+.tabs{position:fixed;left:0;right:0;bottom:0;background:color-mix(in oklab,var(--surface) 92%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px);z-index:5}
+.tabs .inner{max-width:520px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr)}
+.tabs button{border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:3px;padding:9px 0 11px;font-size:11.5px;font-weight:500;color:var(--muted)}
+.tabs button.on{color:var(--ink)}
+.tabs svg{width:22px;height:22px}
+
+/* Sheet + toast */
+dialog.sheet{border:0;padding:0;margin:auto auto 0;width:100%;max-width:520px;max-height:88vh;background:var(--surface);color:var(--ink);border-radius:20px 20px 0 0;box-shadow:0 -10px 40px rgb(0 0 0 / .2)}
+dialog.sheet::backdrop{background:rgb(10 14 12 / .45)}
+.sheet-body{padding:20px 16px calc(20px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:16px}
+.sheet-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.field{display:flex;flex-direction:column;gap:6px}
+.field>span{font-size:13px;font-weight:600}
+.field small{color:var(--muted);font-size:12.5px}
+.toast{position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:999px;font-size:14px;font-weight:500;z-index:20;max-width:calc(100% - 32px);text-align:center}
+.divider{height:1px;background:var(--line)}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+</style>
+
+<div class="app">
+  <header class="top">
+    <div class="brand"><span class="mark" id="mark" aria-hidden="true"></span>Daygrid</div>
+    <button class="icon-btn" id="settingsBtn" aria-label="Settings">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+    </button>
+  </header>
+
+  <div class="banner" id="demoBanner" hidden>
+    <span>You're looking at sample data. Nothing here is saved.</span>
+    <button id="startBtn">Start mine</button>
+  </div>
+
+  <!-- TODAY -->
+  <section class="section" id="tab-today">
+    <div class="datebar">
+      <button class="nav-arrow" id="prevDay" aria-label="Previous day"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m15 6-6 6 6 6"/></svg></button>
+      <div class="when"><span class="label" id="whenLabel">Today</span><strong id="whenDate"></strong></div>
+      <button class="nav-arrow" id="nextDay" aria-label="Next day"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m9 6 6 6-6 6"/></svg></button>
+    </div>
+    <div class="weekstrip" id="weekStrip"></div>
+    <div class="streak" id="streak"></div>
+
+    <div class="stack">
+      <h2 class="q" id="question">How was today?</h2>
+      <div class="scores" id="scores" role="radiogroup" aria-label="Day score from 0 to 10"></div>
+      <div class="scale-ends"><span>Worst days of my life</span><span>Remember in 10 years</span></div>
+      <div class="anchor" id="anchor"><span class="dot">–</span><p class="muted">Tap a number. Go with your gut.</p></div>
+    </div>
+
+    <div class="stack">
+      <textarea id="note" maxlength="280" rows="2" placeholder="One line about the day (optional)"></textarea>
+      <div class="counter" id="counter">0 / 280</div>
+      <div class="stack" style="gap:8px">
+        <span class="label">What drove it? Tap once for +, twice for −</span>
+        <div class="chips" id="tagChips"></div>
+      </div>
+    </div>
+    <button class="primary" id="saveBtn" disabled>Save day</button>
+
+    <div class="card stack" id="checkin" hidden></div>
+    <div class="card stack" id="backupNudge" hidden></div>
+
+    <div class="stack" id="otdWrap">
+      <span class="label" id="otdTitle">On this day</span>
+      <div class="otd" id="otd"></div>
+    </div>
+  </section>
+
+  <!-- YEAR -->
+  <section class="section" id="tab-year" hidden>
+    <div class="yearbar">
+      <button class="nav-arrow" id="prevYear" aria-label="Previous year"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m15 6-6 6 6 6"/></svg></button>
+      <strong class="num" id="yearLabel"></strong>
+      <button class="nav-arrow" id="nextYear" aria-label="Next year"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m9 6 6 6-6 6"/></svg></button>
+    </div>
+    <div class="kpis" id="yearKpis"></div>
+    <div class="ygrid" id="yearGrid"></div>
+    <div class="legend"><span>0</span><span class="bar" id="legendBar"></span><span>10</span></div>
+    <div class="legend-row"><span><i class="sw" style="background:var(--empty)"></i>Not logged</span><span><i class="sw" style="background:var(--future)"></i>Ahead</span><span>Tap a day to read it</span></div>
+  </section>
+
+  <!-- LIFE -->
+  <section class="section" id="tab-life" hidden>
+    <div class="lifehead">
+      <h2 id="lifeTitle"></h2>
+      <p id="lifeSub"></p>
+    </div>
+    <div class="kpis" id="lifeKpis"></div>
+    <canvas id="lifeCanvas" aria-label="Life in weeks grid"></canvas>
+    <div class="lifeinfo" id="lifeInfo">Each row is one year of your life, each square one week. Tap a square.</div>
+    <div class="legend-row"><span><i class="sw" style="background:var(--empty)"></i>Lived, not logged</span><span><i class="sw" style="background:var(--future);outline:1px solid var(--line)"></i>Ahead</span><span>Colored: weekly average</span></div>
+  </section>
+
+  <!-- INSIGHTS -->
+  <section class="section" id="tab-insights" hidden>
+    <div class="seg" id="periodSeg">
+      <button data-p="7">7 days</button><button data-p="30">30 days</button><button data-p="year">This year</button><button data-p="life">Life</button>
+    </div>
+    <div class="chips" id="domainSeg"></div>
+    <div id="insightBody" class="section" style="padding-top:0"></div>
+  </section>
+</div>
+
+<nav class="tabs" aria-label="Sections">
+  <div class="inner">
+    <button data-tab="today" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="16" height="16" rx="4"/><rect x="9" y="9" width="6" height="6" rx="1.5" fill="currentColor" stroke="none"/></svg>Today</button>
+    <button data-tab="year"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="4" width="4" height="4" rx="1"/><rect x="10" y="4" width="4" height="4" rx="1"/><rect x="17" y="4" width="4" height="4" rx="1"/><rect x="3" y="10" width="4" height="4" rx="1"/><rect x="10" y="10" width="4" height="4" rx="1"/><rect x="17" y="10" width="4" height="4" rx="1" opacity=".35"/><rect x="3" y="16" width="4" height="4" rx="1" opacity=".35"/><rect x="10" y="16" width="4" height="4" rx="1" opacity=".35"/><rect x="17" y="16" width="4" height="4" rx="1" opacity=".35"/></svg>Year</button>
+    <button data-tab="life"><svg viewBox="0 0 24 24" fill="currentColor"><g><rect x="3" y="3" width="2.6" height="2.6"/><rect x="7" y="3" width="2.6" height="2.6"/><rect x="11" y="3" width="2.6" height="2.6"/><rect x="15" y="3" width="2.6" height="2.6"/><rect x="19" y="3" width="2.6" height="2.6"/><rect x="3" y="7" width="2.6" height="2.6"/><rect x="7" y="7" width="2.6" height="2.6"/><rect x="11" y="7" width="2.6" height="2.6"/><rect x="15" y="7" width="2.6" height="2.6"/><rect x="19" y="7" width="2.6" height="2.6"/><rect x="3" y="11" width="2.6" height="2.6"/><rect x="7" y="11" width="2.6" height="2.6"/><rect x="11" y="11" width="2.6" height="2.6"/></g><g opacity=".35"><rect x="15" y="11" width="2.6" height="2.6"/><rect x="19" y="11" width="2.6" height="2.6"/><rect x="3" y="15" width="2.6" height="2.6"/><rect x="7" y="15" width="2.6" height="2.6"/><rect x="11" y="15" width="2.6" height="2.6"/><rect x="15" y="15" width="2.6" height="2.6"/><rect x="19" y="15" width="2.6" height="2.6"/><rect x="3" y="19" width="2.6" height="2.6"/><rect x="7" y="19" width="2.6" height="2.6"/><rect x="11" y="19" width="2.6" height="2.6"/><rect x="15" y="19" width="2.6" height="2.6"/><rect x="19" y="19" width="2.6" height="2.6"/></g></svg>Life</button>
+    <button data-tab="insights"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l5-5 4 3 8-8"/><path d="M15 7h5v5"/></svg>Insights</button>
+  </div>
+</nav>
+
+<dialog class="sheet" id="sheet"><div class="sheet-body" id="sheetBody"></div></dialog>
+<div class="toast" id="toast" role="status" hidden></div>
+<input type="file" id="fileInput" accept="application/json,.json" hidden>
+
+<script>
+(() => {
+'use strict';
+const KEY = 'daygrid.v1';
+const EDIT_WINDOW = 3; // today + 3 previous days are editable
+const DOMAINS = [
+  {id:'career', label:'Career & money', short:'Career'},
+  {id:'people', label:'Relationships',  short:'People'},
+  {id:'health', label:'Health',         short:'Health'},
+  {id:'mind',   label:'Mind',           short:'Mind'},
+  {id:'growth', label:'Growth & play',  short:'Growth'},
+];
+const ANCHORS = [
+  'One of the worst days of my life', 'Awful', 'Very bad', 'Bad, heavy', 'Below par',
+  'Flat, forgettable', 'Okay, a few good moments', 'Good day', 'Genuinely good',
+  'Great, it stood out', "A day I'll remember in 10 years"
+];
+const PALETTES = {
+  rg: [[0.58,0.19,27],[0.80,0.15,86],[0.60,0.16,148]],
+  cb: [[0.60,0.16,45],[0.83,0.03,95],[0.55,0.15,255]],
+};
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const WD = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const clamp = (v,a,b) => Math.min(b, Math.max(a, v));
+const pad = n => String(n).padStart(2,'0');
+const key = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const parse = k => { const [y,m,d] = k.split('-').map(Number); return new Date(y, m-1, d); };
+const addDays = (d,n) => { const x = new Date(d); x.setDate(x.getDate()+n); return x; };
+const today = () => { const d = new Date(); d.setHours(0,0,0,0); return d; };
+const diffDays = (a,b) => Math.round((b - a) / 864e5);
+const mondayOf = d => addDays(d, -((d.getDay()+6)%7));
+const fmtLong = d => d.toLocaleDateString('en-GB', {weekday:'long', day:'numeric', month:'long'});
+const fmtShort = d => d.toLocaleDateString('en-GB', {day:'numeric', month:'short'});
+const fmtFull = d => d.toLocaleDateString('en-GB', {day:'numeric', month:'short', year:'numeric'});
+const r1 = v => (Math.round(v*10)/10).toFixed(1);
+
+/* ---------- color ---------- */
+function mix(s){
+  const p = PALETTES[(state && state.profile && state.profile.palette) || 'rg'];
+  s = clamp(s, 0, 10);
+  const [a,b,t] = s <= 5 ? [p[0],p[1],s/5] : [p[1],p[2],Math.pow((s-5)/5,0.75)];
+  return [a[0]+(b[0]-a[0])*t, a[1]+(b[1]-a[1])*t, a[2]+(b[2]-a[2])*t];
+}
+const scoreColor = s => { const [L,C,h] = mix(s); return `oklch(${L.toFixed(3)} ${C.toFixed(3)} ${h.toFixed(1)})`; };
+const scoreFg = s => mix(s)[0] > 0.7 ? '#18201B' : '#FFFFFF';
+const gradientCSS = () => `linear-gradient(90deg, ${[0,2.5,5,7.5,10].map(scoreColor).join(',')})`;
+
+/* ---------- storage ---------- */
+function load(){ try { const raw = localStorage.getItem(KEY); if (raw) { const d = JSON.parse(raw); if (d && d.days) return d; } } catch(e){} return null; }
+function persist(){
+  if (demo) return true;
+  try { localStorage.setItem(KEY, JSON.stringify(state)); return true; }
+  catch(e){ toast('Could not save on this device. Download a backup in Settings.'); return false; }
+}
+function fresh(birth, horizon){ return {version:1, profile:{birth, horizon, palette:'rg', lastBackup:null, created:key(today())}, days:{}, weeks:{}}; }
+
+/* ---------- sample data ---------- */
+function mulberry32(a){ return function(){ a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function makeDemo(){
+  const rnd = mulberry32(11), t = today(), s = fresh('1994-06-14', 80);
+  const good = ['Long run by the river, legs felt light','Shipped the release, team dinner after','Call with mum, an hour went by','Cooked dal from scratch and it came out right','Sunrise trek, worth the 4am alarm','Got the offer','Friend’s wedding, danced till 2','Finished the book I’d been dragging','Deep work all morning, no phone','Beach walk and a long lunch','Finally fixed the bug that ate my week'];
+  const flat = ['Quiet Sunday, nothing happened','Errands and laundry','Meetings, meetings','Rain all day, read on the balcony','Normal day, early night'];
+  const bad = ['Slept badly, dragged through the day','Argument that didn’t need to happen','Client pushed the deadline again','Fever, stayed in bed','Skipped the gym, ate junk','Lost a lead I was counting on'];
+  let mood = 6.2;
+  for (let i = 440; i >= 1; i--){
+    const d = addDays(t, -i);
+    const rough = i > 170 && i < 215 ? -2.6 : 0;
+    const lift = i < 60 ? 0.6 : 0;
+    mood += (6.3 + rough + lift - mood) * 0.3 + (rnd() - 0.5) * 1.5;
+    if (rnd() < 0.06) continue;
+    const wkend = (d.getDay() === 0 || d.getDay() === 6) ? 0.5 : 0;
+    const sc = Math.round(clamp(mood + wkend + (rnd() - 0.5) * 4, 0, 10));
+    const e = {s: sc};
+    if (rnd() < 0.5){ const pool = sc >= 7 ? good : sc <= 4 ? bad : flat; e.n = pool[Math.floor(rnd()*pool.length)]; }
+    if (rnd() < 0.45){ const dm = DOMAINS[Math.floor(rnd()*DOMAINS.length)].id; e.t = {[dm]: sc >= 6 ? 1 : -1}; }
+    s.days[key(d)] = e;
+  }
+  for (let m = mondayOf(addDays(t, -440)); m < t; m = addDays(m, 7)){
+    const i = diffDays(m, t); const rough = i > 170 && i < 215;
+    const w = {};
+    DOMAINS.forEach((dm, j) => {
+      let base = [6.2, 7, 5.8, 6, 5.4][j];
+      if (rough && (dm.id === 'career' || dm.id === 'mind')) base -= 2.2;
+      if (i < 60 && dm.id === 'health') base += 1.2;
+      w[dm.id] = Math.round(clamp(base + (rnd() - 0.5) * 2.4, 0, 10));
+    });
+    s.weeks[key(m)] = w;
+  }
+  s.profile.lastBackup = key(t);
+  return s;
+}
+
+/* ---------- state ---------- */
+let state = load();
+let demo = !state;
+if (demo) state = makeDemo();
+let tab = 'today';
+let logDate = today();
+let draft = {s:null, n:'', t:{}};
+let viewYear = today().getFullYear();
+let period = '30';
+let domain = 'overall';
+let pendingImport = null;
+
+/* ---------- helpers on data ---------- */
+function entriesBetween(a, b){
+  const out = [];
+  for (let d = new Date(a); d <= b; d = addDays(d, 1)){ const e = state.days[key(d)]; if (e) out.push({d: new Date(d), ...e}); }
+  return out;
+}
+function firstLogged(){ const ks = Object.keys(state.days).sort(); return ks.length ? parse(ks[0]) : null; }
+function streak(){
+  const t = today(); let d = state.days[key(t)] ? t : addDays(t, -1); let n = 0, gap = 0, forgiven = 0;
+  for (let i = 0; i < 40000; i++){
+    if (state.days[key(d)]){ n++; gap = 0; }
+    else { gap++; if (gap > 1) break; if (i > 0) forgiven++; }
+    d = addDays(d, -1);
+  }
+  return n;
+}
+const avg = arr => arr.length ? arr.reduce((a,b) => a+b, 0) / arr.length : null;
+const sd = arr => { const m = avg(arr); return arr.length > 1 ? Math.sqrt(avg(arr.map(v => (v-m)**2))) : 0; };
+
+/* ---------- mark ---------- */
+function renderMark(){ $('mark').innerHTML = [2,4,5,6,7,8,9,7,10].map(v => `<i style="background:${scoreColor(v)}"></i>`).join(''); }
+
+/* ---------- TODAY ---------- */
+function setLogDate(d){
+  logDate = d;
+  const e = state.days[key(d)];
+  draft = e ? {s:e.s, n:e.n||'', t:{...(e.t||{})}} : {s:null, n:'', t:{}};
+  renderToday();
+}
+function renderToday(){
+  const t = today(), off = diffDays(logDate, t);
+  $('whenLabel').textContent = off === 0 ? 'Today' : off === 1 ? 'Yesterday' : `${off} days ago`;
+  $('whenDate').textContent = fmtLong(logDate);
+  $('prevDay').disabled = off >= EDIT_WINDOW;
+  $('nextDay').disabled = off <= 0;
+  $('question').textContent = off === 0 ? 'How was today?' : off === 1 ? 'How was yesterday?' : 'How was that day?';
+
+  const mon = mondayOf(t);
+  $('weekStrip').innerHTML = WD.map((w, i) => {
+    const d = addDays(mon, i), e = state.days[key(d)], fut = d > t;
+    const st = e ? `style="background:${scoreColor(e.s)}"` : '';
+    return `<div><span class="${fut?'future':''} ${+d===+logDate?'sel':''}" ${st}></span>${w[0]}</div>`;
+  }).join('');
+
+  const n = streak();
+  $('streak').innerHTML = n ? `<b class="num">${n}</b> day${n===1?'':'s'} in a row<span aria-hidden="true">·</span><span>one missed day is forgiven</span>` : `<span>Log tonight to start a streak</span>`;
+
+  const has = draft.s !== null;
+  $('scores').classList.toggle('has-sel', has);
+  $('scores').innerHTML = Array.from({length:11}, (_, i) =>
+    `<button class="score ${draft.s===i?'on':''}" role="radio" aria-checked="${draft.s===i}" aria-label="${i}: ${ANCHORS[i]}" data-s="${i}" style="--c:${scoreColor(i)};--fg:${scoreFg(i)}">${i}</button>`).join('');
+  $('anchor').innerHTML = has
+    ? `<span class="dot" style="--c:${scoreColor(draft.s)};--fg:${scoreFg(draft.s)}">${draft.s}</span><p>${ANCHORS[draft.s]}</p>`
+    : `<span class="dot">–</span><p class="muted">Tap a number. Go with your gut.</p>`;
+
+  $('note').value = draft.n;
+  $('counter').textContent = `${draft.n.length} / 280`;
+  renderChips();
+
+  const existing = state.days[key(logDate)];
+  $('saveBtn').disabled = !has;
+  $('saveBtn').textContent = existing ? 'Update day' : 'Save day';
+
+  renderCheckin();
+  renderBackupNudge();
+  renderOTD();
+}
+function renderChips(){
+  $('tagChips').innerHTML = DOMAINS.map(d => {
+    const v = draft.t[d.id] || 0;
+    return `<button class="chip ${v>0?'plus':v<0?'minus':''}" data-tag="${d.id}" aria-label="${d.label}: ${v>0?'positive':v<0?'negative':'none'}"><span class="sign">${v>0?'+':v<0?'−':'·'}</span>${d.short}</button>`;
+  }).join('');
+}
+function saveDay(){
+  if (draft.s === null) return;
+  if (demo){ openSetup(); return; }
+  const e = {s: draft.s};
+  const n = draft.n.trim(); if (n) e.n = n;
+  const tg = Object.fromEntries(Object.entries(draft.t).filter(([,v]) => v)); if (Object.keys(tg).length) e.t = tg;
+  e.at = new Date().toISOString();
+  state.days[key(logDate)] = e;
+  if (persist()){
+    const s = streak();
+    toast(s > 1 ? `Saved · ${s} days in a row` : 'Saved');
+  }
+  renderAll();
+}
+function dueWeek(){
+  const t = today(), wd = (t.getDay()+6)%7;
+  let wk = null;
+  if (wd === 6) wk = mondayOf(t); else if (wd <= 1) wk = addDays(mondayOf(t), -7);
+  if (!wk) return null;
+  const k = key(wk);
+  return state.weeks[k] ? null : k;
+}
+let checkinDraft = null;
+function renderCheckin(){
+  const k = dueWeek(), box = $('checkin');
+  if (!k){ box.hidden = true; return; }
+  if (!checkinDraft || checkinDraft.k !== k) checkinDraft = {k, v: Object.fromEntries(DOMAINS.map(d => [d.id, 5]))};
+  const m = parse(k);
+  box.hidden = false;
+  box.className = 'card stack checkin';
+  box.innerHTML = `<div><span class="label">Weekly check-in · 20 seconds</span><h3 style="margin-top:4px">Week of ${fmtShort(m)} – ${fmtShort(addDays(m,6))}</h3></div>` +
+    DOMAINS.map(d => `<label class="row" for="ci-${d.id}"><span>${d.label}</span><input type="range" id="ci-${d.id}" min="0" max="10" step="1" value="${checkinDraft.v[d.id]}" data-dom="${d.id}" style="accent-color:${scoreColor(checkinDraft.v[d.id])}"><span class="v" id="civ-${d.id}">${checkinDraft.v[d.id]}</span></label>`).join('') +
+    `<div class="btn-row"><button class="ghost" id="ciSkip">Skip this week</button><button class="primary" id="ciSave" style="padding:11px">Save week</button></div>`;
+}
+function renderBackupNudge(){
+  const box = $('backupNudge'), n = Object.keys(state.days).length, lb = state.profile.lastBackup;
+  const since = lb ? diffDays(parse(lb), today()) : Infinity;
+  if (demo || n < 14 || since < 30){ box.hidden = true; return; }
+  box.hidden = false;
+  box.innerHTML = `<div><span class="label">Backup</span><h3 style="margin-top:4px">${lb ? `Last backup was ${since} days ago` : 'You haven’t backed up yet'}</h3><p class="muted" style="margin:4px 0 0">Your ${n} days live only on this phone. A backup file keeps them safe if the browser data is cleared.</p></div><button class="primary" id="nudgeBackup" style="padding:11px">Download backup</button>`;
+}
+function renderOTD(){
+  const mm = logDate.getMonth(), dd = logDate.getDate(), y0 = logDate.getFullYear();
+  const items = [];
+  const first = firstLogged();
+  const minY = first ? first.getFullYear() : y0;
+  for (let y = y0 - 1; y >= minY; y--){
+    const d = new Date(y, mm, dd); if (d.getMonth() !== mm) continue;
+    const e = state.days[key(d)]; if (e) items.push({d, e, ago: y0 - y});
+  }
+  const monthAgo = addDays(logDate, -28); const em = state.days[key(monthAgo)];
+  let html = items.map(({d,e,ago}) => otdItem(e, `${ago} year${ago>1?'s':''} ago · ${fmtFull(d)}`)).join('');
+  if (em) html += otdItem(em, `4 weeks ago · ${fmtLong(monthAgo)}`);
+  $('otdTitle').textContent = items.length ? 'On this day' : 'Looking back';
+  $('otd').innerHTML = html || `<p class="empty-note">A year from now, this is where today's note will come back to you.</p>`;
+}
+const otdItem = (e, meta) => `<div class="otd-item"><span class="sq" style="background:${scoreColor(e.s)};--fg:${scoreFg(e.s)}">${e.s}</span><div><small>${esc(meta)}</small><p>${e.n ? esc(e.n) : `<span class="muted">${ANCHORS[e.s]}</span>`}</p></div></div>`;
+
+/* ---------- YEAR ---------- */
+function renderYear(){
+  const t = today(), y = viewYear;
+  $('yearLabel').textContent = y;
+  const first = firstLogged();
+  $('prevYear').disabled = y <= Math.min(first ? first.getFullYear() : t.getFullYear(), t.getFullYear()) - 1;
+  $('nextYear').disabled = y >= t.getFullYear();
+  const ents = entriesBetween(new Date(y,0,1), new Date(y,11,31)).map(e => e.s);
+  const a = avg(ents);
+  const elapsed = y < t.getFullYear() ? diffDays(new Date(y,0,1), new Date(y,11,31)) + 1 : y === t.getFullYear() ? diffDays(new Date(y,0,1), t) + 1 : 0;
+  const green = ents.filter(v => v >= 7).length;
+  $('yearKpis').innerHTML =
+    kpi(a === null ? '–' : r1(a), 'Average', a === null ? null : a) +
+    kpi(`${ents.length}<small class="muted" style="font-size:12px">/${elapsed}</small>`, 'Days logged') +
+    kpi(ents.length ? Math.round(green/ents.length*100) + '%' : '–', 'Green days (7+)');
+  let html = '<span></span>' + Array.from({length:31}, (_, i) => `<span class="dl">${[1,10,20,31].includes(i+1) ? i+1 : ''}</span>`).join('');
+  for (let m = 0; m < 12; m++){
+    const dim = new Date(y, m+1, 0).getDate();
+    html += `<span class="ml">${MONTHS[m]}</span>`;
+    for (let d = 1; d <= 31; d++){
+      if (d > dim){ html += '<span class="cell void"></span>'; continue; }
+      const dt = new Date(y, m, d), k = key(dt), e = state.days[k];
+      const cls = ['cell']; if (dt > t) cls.push('future'); if (+dt === +t) cls.push('today');
+      html += `<button class="${cls.join(' ')}" data-day="${k}" aria-label="${fmtFull(dt)}${e ? ': ' + e.s : ''}" ${e ? `style="background:${scoreColor(e.s)}"` : ''}></button>`;
+    }
+  }
+  $('yearGrid').innerHTML = html;
+  $('legendBar').style.background = gradientCSS();
+}
+const kpi = (v, label, colorScore) => `<div class="kpi"><b>${colorScore != null ? `<i style="background:${scoreColor(colorScore)}"></i>` : ''}${v}</b><span>${label}</span></div>`;
+
+function openDay(k){
+  const d = parse(k), e = state.days[k], off = diffDays(d, today());
+  const editable = off >= 0 && off <= EDIT_WINDOW;
+  let body = `<div class="sheet-head"><div><span class="label">${d.toLocaleDateString('en-GB',{weekday:'long'})}</span><h2 style="margin-top:2px">${fmtFull(d)}</h2></div><button class="icon-btn" data-close aria-label="Close"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>`;
+  if (e){
+    body += `<div class="anchor"><span class="dot" style="--c:${scoreColor(e.s)};--fg:${scoreFg(e.s)}">${e.s}</span><p>${ANCHORS[e.s]}</p></div>`;
+    body += e.n ? `<p style="margin:0;font-size:17px">${esc(e.n)}</p>` : `<p class="empty-note">No note that day.</p>`;
+    if (e.t) body += `<div class="chips">${Object.entries(e.t).map(([id,v]) => { const dm = DOMAINS.find(x => x.id === id); return dm ? `<span class="chip ${v>0?'plus':'minus'}"><span class="sign">${v>0?'+':'−'}</span>${dm.short}</span>` : ''; }).join('')}</div>`;
+  } else {
+    body += `<p class="empty-note">${off < 0 ? 'This day hasn’t happened yet.' : 'Nothing logged for this day.'}</p>`;
+  }
+  if (editable) body += `<button class="primary" data-edit="${k}">${e ? 'Edit this day' : 'Log this day'}</button>`;
+  else if (off > EDIT_WINDOW && !e) body += `<p class="empty-note">Days older than ${EDIT_WINDOW} days stay as they are. Memory fades fast, so the grid only keeps what you logged close to the day.</p>`;
+  openSheet(body);
+}
+
+/* ---------- LIFE ---------- */
+function lifeModel(){
+  const b = parse(state.profile.birth), H = +state.profile.horizon || 80, t = today();
+  const bday = age => new Date(b.getFullYear() + age, b.getMonth(), b.getDate());
+  const pos = d => {
+    let age = d.getFullYear() - b.getFullYear();
+    if (d < bday(age)) age--;
+    const col = Math.min(51, Math.floor(diffDays(bday(age), d) / 7));
+    return {age, col};
+  };
+  const agg = new Map();
+  for (const [k, e] of Object.entries(state.days)){
+    const p = pos(parse(k)); if (p.age < 0) continue;
+    const id = p.age * 52 + p.col; const a = agg.get(id) || {sum:0, n:0}; a.sum += e.s; a.n++; agg.set(id, a);
+  }
+  return {b, H, t, bday, pos, agg, now: pos(t)};
+}
+let lifeGeom = null;
+function renderLife(){
+  const M = lifeModel(), nowIdx = M.now.age * 52 + M.now.col, total = M.H * 52;
+  const pct = clamp(nowIdx / total * 100, 0, 100);
+  $('lifeTitle').textContent = `Week ${(nowIdx+1).toLocaleString('en-IN')} of ${total.toLocaleString('en-IN')}`;
+  $('lifeSub').textContent = `You're ${M.now.age}. About ${Math.round(pct)}% of an ${M.H}-year life is behind you, and ${(total - nowIdx - 1).toLocaleString('en-IN')} weeks are still blank.`;
+  const all = Object.values(state.days).map(e => e.s), a = avg(all);
+  const weeksLogged = M.agg.size;
+  $('lifeKpis').innerHTML = kpi(a === null ? '–' : r1(a), 'Life average', a) + kpi(all.length.toLocaleString('en-IN'), 'Days logged') + kpi(weeksLogged.toLocaleString('en-IN'), 'Weeks with color');
+
+  const cv = $('lifeCanvas'), dpr = window.devicePixelRatio || 1;
+  const W = cv.parentElement.clientWidth, labelW = 22, gap = W < 420 ? 1 : 1.5;
+  const cell = (W - labelW - gap * 51) / 52;
+  const H = M.H * (cell + gap) - gap + (Math.floor((M.H-1)/10)) * 3;
+  cv.style.height = H + 'px'; cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+  const ctx = cv.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0); ctx.clearRect(0,0,W,H);
+  const cs = getComputedStyle(document.documentElement);
+  const cEmpty = cs.getPropertyValue('--empty').trim(), cFut = cs.getPropertyValue('--future').trim(), cInk = cs.getPropertyValue('--ink').trim(), cMuted = cs.getPropertyValue('--muted').trim(), cLine = cs.getPropertyValue('--line').trim();
+  const rowY = r => r * (cell + gap) + Math.floor(r / 10) * 3;
+  ctx.font = `500 9px ${cs.getPropertyValue('--mono')}`; ctx.fillStyle = cMuted; ctx.textBaseline = 'middle';
+  for (let r = 0; r < M.H; r++){
+    const y = rowY(r);
+    if (r % 10 === 0) { ctx.fillStyle = cMuted; ctx.fillText(String(r), 0, y + cell/2); }
+    for (let c = 0; c < 52; c++){
+      const idx = r * 52 + c, x = labelW + c * (cell + gap), ag = M.agg.get(idx);
+      if (ag) ctx.fillStyle = scoreColor(ag.sum / ag.n);
+      else if (idx < nowIdx) ctx.fillStyle = cEmpty;
+      else if (idx === nowIdx) ctx.fillStyle = cEmpty;
+      else ctx.fillStyle = cFut;
+      ctx.fillRect(x, y, cell, cell);
+      if (idx > nowIdx){ ctx.strokeStyle = cLine; ctx.lineWidth = 0.5; ctx.strokeRect(x+.25, y+.25, cell-.5, cell-.5); }
+    }
+  }
+  const nx = labelW + M.now.col * (cell + gap), ny = rowY(M.now.age);
+  ctx.strokeStyle = cInk; ctx.lineWidth = 1.5; ctx.strokeRect(nx - 1, ny - 1, cell + 2, cell + 2);
+  lifeGeom = {labelW, cell, gap, rowY, M};
+}
+function lifeTap(ev){
+  if (!lifeGeom) return;
+  const {labelW, cell, gap, M} = lifeGeom, rect = $('lifeCanvas').getBoundingClientRect();
+  const x = ev.clientX - rect.left - labelW, y = ev.clientY - rect.top;
+  const c = Math.floor(x / (cell + gap)); if (c < 0 || c > 51) return;
+  let r = -1; for (let i = 0; i < M.H; i++){ const ry = lifeGeom.rowY(i); if (y >= ry && y < ry + cell + gap + 3){ r = i; break; } }
+  if (r < 0) return;
+  const start = addDays(M.bday(r), c * 7), end = c === 51 ? addDays(M.bday(r+1), -1) : addDays(start, 6);
+  const idx = r * 52 + c, nowIdx = M.now.age * 52 + M.now.col, ag = M.agg.get(idx);
+  let msg = `<b>Age ${r}, week ${c+1}</b> · ${fmtShort(start)} – ${fmtFull(end)}<br>`;
+  if (ag) msg += `Average <b class="num">${r1(ag.sum/ag.n)}</b> from ${ag.n} logged day${ag.n>1?'s':''}`;
+  else if (idx < nowIdx) msg += `<span class="muted">Lived, not logged.</span>`;
+  else if (idx === nowIdx) msg += `<span class="muted">This week. Still being written.</span>`;
+  else msg += `<span class="muted">Ahead of you, ${Math.round(diffDays(M.t, start)/7).toLocaleString('en-IN')} weeks from now.</span>`;
+  $('lifeInfo').innerHTML = msg;
+}
+
+/* ---------- INSIGHTS ---------- */
+function periodRange(){
+  const t = today();
+  if (period === '7') return [addDays(t, -6), t, 'the last 7 days'];
+  if (period === '30') return [addDays(t, -29), t, 'the last 30 days'];
+  if (period === 'year') return [new Date(t.getFullYear(), 0, 1), t, String(t.getFullYear())];
+  const f = firstLogged(); return [f || t, t, 'everything you’ve logged'];
+}
+function renderInsights(){
+  document.querySelectorAll('#periodSeg button').forEach(b => b.classList.toggle('on', b.dataset.p === period));
+  $('domainSeg').innerHTML = [{id:'overall', short:'Overall'}, ...DOMAINS].map(d => `<button class="chip pick ${domain===d.id?'on':''}" data-dom="${d.id}">${d.short}</button>`).join('');
+  $('insightBody').innerHTML = domain === 'overall' ? overallInsights() : domainInsights(domain);
+}
+function rolling(ents, a, b, w){
+  const map = new Map(ents.map(e => [key(e.d), e.s])), pts = [];
+  for (let d = new Date(a); d <= b; d = addDays(d, 1)){
+    const vals = []; for (let i = 0; i < w; i++){ const v = map.get(key(addDays(d, -i))); if (v !== undefined) vals.push(v); }
+    if (vals.length >= Math.max(2, Math.ceil(w/3))) pts.push({d: new Date(d), v: avg(vals)});
+  }
+  return pts;
+}
+function chart({a, b, dots = [], line = [], big = false}){
+  const W = 340, H = 180, L = 22, R = 8, T = 10, B = 22;
+  const span = Math.max(1, diffDays(a, b));
+  const x = d => L + diffDays(a, d) / span * (W - L - R);
+  const y = v => T + (10 - v) / 10 * (H - T - B);
+  let s = `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Scores over time">`;
+  [0, 5, 10].forEach(v => { s += `<line class="grid" x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}"/><text x="${L-6}" y="${y(v)+3}" text-anchor="end">${v}</text>`; });
+  s += `<text x="${L}" y="${H-4}">${fmtShort(a)}</text><text x="${W-R}" y="${H-4}" text-anchor="end">${fmtShort(b)}</text>`;
+  const r = dots.length > 200 ? 1.6 : dots.length > 60 ? 2.4 : 3.6;
+  dots.forEach(p => { s += `<circle cx="${x(p.d).toFixed(1)}" cy="${y(p.v).toFixed(1)}" r="${r}" fill="${scoreColor(p.v)}"/>`; });
+  if (line.length > 1){
+    s += `<path class="trend" d="${line.map((p, i) => `${i ? 'L' : 'M'}${x(p.d).toFixed(1)},${y(p.v).toFixed(1)}`).join('')}"/>`;
+    const last = line[line.length-1]; s += `<circle cx="${x(last.d).toFixed(1)}" cy="${y(last.v).toFixed(1)}" r="4" fill="${scoreColor(last.v)}" stroke="var(--surface)" stroke-width="2"/>`;
+  }
+  return s + '</svg>';
+}
+function overallInsights(){
+  const [a, b, label] = periodRange();
+  const ents = entriesBetween(a, b), vals = ents.map(e => e.s), possible = diffDays(a, b) + 1;
+  if (!ents.length) return `<div class="card"><p class="empty-note">Nothing logged in ${label} yet. Log tonight and this fills in.</p></div>`;
+  const m = avg(vals), dev = sd(vals);
+  const vol = dev < 1.2 ? 'Steady' : dev < 2.2 ? 'Some ups and downs' : 'Swingy';
+  const green = vals.filter(v => v >= 7).length, red = vals.filter(v => v <= 3).length;
+  const w = possible > 120 ? 30 : 7;
+  let html = `<div class="hero"><span class="swatch" style="background:${scoreColor(m)};--fg:${scoreFg(m)}">${r1(m)}</span><div><span class="label">Color of ${esc(label)}</span><p class="big">${ANCHORS[Math.round(m)]}</p><p class="muted">${ents.length} of ${possible} days logged</p></div></div>`;
+  html += `<div class="card stack"><div style="display:flex;justify-content:space-between;align-items:baseline"><h3>Your days</h3><span class="muted" style="font-size:12.5px">line = ${w}-day average</span></div>${chart({a, b, dots: ents.map(e => ({d:e.d, v:e.s})), line: rolling(ents, a, b, w)})}</div>`;
+  html += `<div class="kpis">${kpi(Math.round(green/ents.length*100)+'%', 'Green days (7+)', 8)}${kpi(Math.round(red/ents.length*100)+'%', 'Red days (0–3)', 2)}${kpi(r1(dev), vol)}</div>`;
+  if (ents.length >= 14){
+    const by = WD.map(() => []); ents.forEach(e => by[(e.d.getDay()+6)%7].push(e.s));
+    const avgs = by.map(avg);
+    html += `<div class="card stack"><h3>By weekday</h3><div class="wd">${avgs.map((v, i) => `<div>${v === null ? '' : `<b>${r1(v)}</b><i style="height:${Math.max(4, v*9)}px;background:${scoreColor(v)}"></i>`}${WD[i][0]}</div>`).join('')}</div></div>`;
+  }
+  const facts = [];
+  if (ents.length >= 14){
+    const by = WD.map(() => []); ents.forEach(e => by[(e.d.getDay()+6)%7].push(e.s));
+    const avgs = by.map(v => v.length >= 2 ? avg(v) : null);
+    const valid = avgs.map((v, i) => [v, i]).filter(p => p[0] !== null);
+    if (valid.length > 2){ const best = valid.reduce((p, c) => c[0] > p[0] ? c : p), worst = valid.reduce((p, c) => c[0] < p[0] ? c : p);
+      facts.push(['Best weekday', `${WD[best[1]]} · ${r1(best[0])}`]); facts.push(['Hardest weekday', `${WD[worst[1]]} · ${r1(worst[0])}`]); }
+  }
+  if (possible >= 21){
+    const map = new Map(ents.map(e => [key(e.d), e.s])); let best = null, worst = null;
+    for (let d = new Date(a); addDays(d, 6) <= b; d = addDays(d, 1)){
+      const v = []; for (let i = 0; i < 7; i++){ const s = map.get(key(addDays(d, i))); if (s !== undefined) v.push(s); }
+      if (v.length >= 5){ const m2 = avg(v); if (!best || m2 > best.v) best = {d: new Date(d), v: m2}; if (!worst || m2 < worst.v) worst = {d: new Date(d), v: m2}; }
+    }
+    if (best) facts.push(['Best week', `${fmtShort(best.d)} – ${fmtShort(addDays(best.d, 6))} · ${r1(best.v)}`]);
+    if (worst && worst.v < best.v) facts.push(['Toughest week', `${fmtShort(worst.d)} – ${fmtShort(addDays(worst.d, 6))} · ${r1(worst.v)}`]);
+  }
+  const tally = tagTally(ents);
+  const topPlus = tally.slice().sort((p, q) => q.plus - p.plus)[0], topMinus = tally.slice().sort((p, q) => q.minus - p.minus)[0];
+  if (topPlus && topPlus.plus) facts.push(['Lifted you most', `${topPlus.label} · ${topPlus.plus} day${topPlus.plus>1?'s':''}`]);
+  if (topMinus && topMinus.minus) facts.push(['Dragged you most', `${topMinus.label} · ${topMinus.minus} day${topMinus.minus>1?'s':''}`]);
+  const top = ents.filter(e => e.n).sort((p, q) => q.s - p.s)[0];
+  if (facts.length) html += `<div class="card facts">${facts.map(f => `<div class="fact"><span class="muted">${f[0]}</span><span>${esc(f[1])}</span></div>`).join('')}</div>`;
+  if (top) html += `<div class="card stack"><span class="label">Brightest day in ${esc(label)}</span>${otdItem(top, fmtFull(top.d))}</div>`;
+  return html;
+}
+function tagTally(ents){
+  return DOMAINS.map(d => { let plus = 0, minus = 0; ents.forEach(e => { const v = e.t && e.t[d.id]; if (v > 0) plus++; else if (v < 0) minus++; }); return {id: d.id, label: d.label, plus, minus}; });
+}
+function domainInsights(id){
+  const dm = DOMAINS.find(d => d.id === id), [a, b, label] = periodRange();
+  const wa = period === '7' ? addDays(a, -6) : a;
+  const weeks = Object.entries(state.weeks).map(([k, v]) => ({d: parse(k), v: v[id]})).filter(w => typeof w.v === 'number' && w.d >= mondayOf(wa) && w.d <= b).sort((p, q) => p.d - q.d);
+  const ents = entriesBetween(a, b), t = tagTally(ents).find(x => x.id === id);
+  let html = '';
+  if (weeks.length){
+    const vals = weeks.map(w => w.v), m = avg(vals);
+    html += `<div class="hero"><span class="swatch" style="background:${scoreColor(m)};--fg:${scoreFg(m)}">${r1(m)}</span><div><span class="label">${esc(dm.label)} · ${esc(label)}</span><p class="big">${ANCHORS[Math.round(m)]}</p><p class="muted">From ${weeks.length} weekly check-in${weeks.length>1?'s':''}</p></div></div>`;
+    if (weeks.length >= 2){
+      const ca = weeks[0].d < a ? weeks[0].d : a;
+      html += `<div class="card stack"><h3>Weekly ratings</h3>${chart({a: ca, b, dots: weeks, line: weeks.length > 2 ? weeks : []})}</div>`;
+      const half = Math.floor(vals.length / 2);
+      if (half >= 2){ const d = avg(vals.slice(half)) - avg(vals.slice(0, half));
+        html += `<div class="card facts"><div class="fact"><span class="muted">Direction</span><span>${Math.abs(d) < 0.3 ? 'Holding steady' : d > 0 ? `Rising · +${r1(d)}` : `Slipping · ${r1(d)}`}</span></div><div class="fact"><span class="muted">Best week</span><span>${(() => { const bw = weeks.reduce((p, c) => c.v > p.v ? c : p); return `${fmtShort(bw.d)} · ${bw.v}`; })()}</span></div><div class="fact"><span class="muted">Lowest week</span><span>${(() => { const lw = weeks.reduce((p, c) => c.v < p.v ? c : p); return `${fmtShort(lw.d)} · ${lw.v}`; })()}</span></div></div>`; }
+    }
+  } else {
+    html += `<div class="card"><p class="empty-note">No weekly check-ins for ${esc(dm.label.toLowerCase())} in ${esc(label)} yet. The check-in card appears on the Today tab each Sunday.</p></div>`;
+  }
+  html += `<div class="kpis">${kpi(t.plus, `Days it lifted you`, 8)}${kpi(t.minus, `Days it dragged`, 2)}${kpi(ents.length ? Math.round((t.plus + t.minus)/ents.length*100) + '%' : '–', 'Share of days')}</div>`;
+  const notes = ents.filter(e => e.t && e.t[id] && e.n).slice(-4).reverse();
+  if (notes.length) html += `<div class="card stack"><span class="label">Recent ${esc(dm.short.toLowerCase())} days</span>${notes.map(e => otdItem(e, fmtFull(e.d))).join('')}</div>`;
+  return html;
+}
+
+/* ---------- settings / setup ---------- */
+function openSettings(){
+  const p = state.profile, n = Object.keys(state.days).length;
+  const lb = p.lastBackup ? `${fmtFull(parse(p.lastBackup))}` : 'Never';
+  openSheet(`<div class="sheet-head"><h2>Settings</h2><button class="icon-btn" data-close aria-label="Close"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
+    ${demo ? `<div class="banner"><span>Sample data. Start your own grid to save anything.</span><button data-setup>Start mine</button></div>` : ''}
+    <label class="field" for="setBirth"><span>Birth date</span><input type="date" id="setBirth" value="${p.birth}" max="${key(today())}"><small>Used for the Life grid.</small></label>
+    <label class="field" for="setHorizon"><span>Life horizon (years)</span><input type="number" id="setHorizon" min="50" max="110" value="${p.horizon}"></label>
+    <div class="field"><span>Colors</span><div class="chips"><button class="chip pick ${p.palette!=='cb'?'on':''}" data-pal="rg">Red to green</button><button class="chip pick ${p.palette==='cb'?'on':''}" data-pal="cb">Orange to blue (colorblind-safe)</button></div></div>
+    <div class="divider"></div>
+    <div class="field"><span>Backup</span><small>${n} days stored on this device. Last backup: ${lb}.</small></div>
+    <div class="btn-row"><button class="ghost" data-act="download">Download backup</button><button class="ghost" data-act="copy">Copy backup</button></div>
+    <button class="ghost" data-act="import">Restore from a backup file</button>
+    <div id="importConfirm"></div>
+    <textarea id="copyBox" hidden readonly rows="4"></textarea>
+    <div class="divider"></div>
+    <button class="ghost danger" data-act="reset">Erase all data on this device</button>
+    <div id="resetConfirm"></div>`);
+}
+function openSetup(){
+  openSheet(`<div class="sheet-head"><div><span class="label">Start your grid</span><h2 style="margin-top:2px">Every day gets one color</h2></div><button class="icon-btn" data-close aria-label="Close"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
+    <p class="muted" style="margin:0">Your data stays on this phone. The sample data goes away.</p>
+    <label class="field" for="suBirth"><span>Your birth date</span><input type="date" id="suBirth" max="${key(today())}"><small>Places you on the Life grid.</small></label>
+    <label class="field" for="suHorizon"><span>Life horizon (years)</span><input type="number" id="suHorizon" min="50" max="110" value="80"></label>
+    <p id="suErr" class="danger" style="margin:0" hidden>Add your birth date to continue.</p>
+    <button class="primary" id="suGo">Start logging</button>`);
+}
+function download(){
+  const blob = new Blob([JSON.stringify(state, null, 1)], {type: 'application/json'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `daygrid-backup-${key(today())}.json`;
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  if (!demo){ state.profile.lastBackup = key(today()); persist(); }
+  toast('Backup file downloaded');
+  renderToday();
+}
+function copyBackup(){
+  const txt = JSON.stringify(state);
+  const fallback = () => { const box = $('copyBox'); if (!box) return; box.hidden = false; box.value = txt; box.focus(); box.select(); toast('Select all and copy the text'); };
+  if (navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(txt).then(() => { if (!demo){ state.profile.lastBackup = key(today()); persist(); } toast('Backup copied. Paste it somewhere safe.'); }).catch(fallback);
+  } else fallback();
+}
+function handleImport(file){
+  const r = new FileReader();
+  r.onload = () => {
+    try {
+      const d = JSON.parse(r.result);
+      if (!d || typeof d.days !== 'object' || !d.profile) throw new Error('shape');
+      pendingImport = d;
+      const box = $('importConfirm'); if (!box) return;
+      box.innerHTML = `<div class="card stack"><p style="margin:0">This file has <b>${Object.keys(d.days).length}</b> days. Restoring replaces what's on this device.</p><div class="btn-row"><button class="ghost" data-act="import-cancel">Cancel</button><button class="primary" data-act="import-yes" style="padding:11px">Replace and restore</button></div></div>`;
+    } catch(e){ toast('That file isn’t a Daygrid backup'); }
+  };
+  r.readAsText(file);
+}
+
+/* ---------- sheet / toast ---------- */
+function openSheet(html){ $('sheetBody').innerHTML = html; const s = $('sheet'); if (!s.open) { try { s.showModal(); } catch(e){ s.setAttribute('open',''); } } }
+function closeSheet(){ const s = $('sheet'); if (s.open) s.close(); }
+let toastT;
+function toast(msg){ const t = $('toast'); t.textContent = msg; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => t.hidden = true, 2600); }
+
+/* ---------- tabs / render ---------- */
+function setTab(t){
+  tab = t;
+  ['today','year','life','insights'].forEach(x => $('tab-' + x).hidden = x !== t);
+  document.querySelectorAll('.tabs button').forEach(b => b.classList.toggle('on', b.dataset.tab === t));
+  render();
+  window.scrollTo(0, 0);
+}
+function render(){
+  $('demoBanner').hidden = !demo;
+  if (tab === 'today') renderToday();
+  if (tab === 'year') renderYear();
+  if (tab === 'life') renderLife();
+  if (tab === 'insights') renderInsights();
+}
+function renderAll(){ renderMark(); render(); }
+
+/* ---------- events ---------- */
+document.querySelectorAll('.tabs button').forEach(b => b.addEventListener('click', () => setTab(b.dataset.tab)));
+$('scores').addEventListener('click', e => { const b = e.target.closest('.score'); if (!b) return; draft.s = +b.dataset.s; renderToday(); });
+$('note').addEventListener('input', e => { draft.n = e.target.value; $('counter').textContent = `${draft.n.length} / 280`; });
+$('tagChips').addEventListener('click', e => { const b = e.target.closest('[data-tag]'); if (!b) return; const id = b.dataset.tag, v = draft.t[id] || 0; draft.t[id] = v === 0 ? 1 : v === 1 ? -1 : 0; renderChips(); });
+$('saveBtn').addEventListener('click', saveDay);
+$('prevDay').addEventListener('click', () => setLogDate(addDays(logDate, -1)));
+$('nextDay').addEventListener('click', () => setLogDate(addDays(logDate, 1)));
+$('weekStrip').addEventListener('click', e => {
+  const i = [...$('weekStrip').children].indexOf(e.target.closest('#weekStrip > div')); if (i < 0) return;
+  const d = addDays(mondayOf(today()), i), off = diffDays(d, today());
+  if (off >= 0 && off <= EDIT_WINDOW) setLogDate(d); else if (off > EDIT_WINDOW) openDay(key(d));
+});
+$('checkin').addEventListener('input', e => { const r = e.target.closest('input[type=range]'); if (!r) return; const v = +r.value; checkinDraft.v[r.dataset.dom] = v; $('civ-' + r.dataset.dom).textContent = v; r.style.accentColor = scoreColor(v); });
+$('checkin').addEventListener('click', e => {
+  if (e.target.id === 'ciSave'){ if (demo){ openSetup(); return; } state.weeks[checkinDraft.k] = {...checkinDraft.v}; persist(); toast('Week saved'); renderToday(); }
+  if (e.target.id === 'ciSkip'){ if (demo){ openSetup(); return; } state.weeks[checkinDraft.k] = {skipped: true}; persist(); renderToday(); }
+});
+$('backupNudge').addEventListener('click', e => { if (e.target.id === 'nudgeBackup') download(); });
+$('yearGrid').addEventListener('click', e => { const b = e.target.closest('[data-day]'); if (b) openDay(b.dataset.day); });
+$('prevYear').addEventListener('click', () => { viewYear--; renderYear(); });
+$('nextYear').addEventListener('click', () => { viewYear++; renderYear(); });
+$('lifeCanvas').addEventListener('click', lifeTap);
+$('periodSeg').addEventListener('click', e => { const b = e.target.closest('[data-p]'); if (!b) return; period = b.dataset.p; renderInsights(); });
+$('domainSeg').addEventListener('click', e => { const b = e.target.closest('[data-dom]'); if (!b) return; domain = b.dataset.dom; renderInsights(); });
+$('settingsBtn').addEventListener('click', openSettings);
+$('startBtn').addEventListener('click', openSetup);
+$('otd').addEventListener('click', () => {});
+$('fileInput').addEventListener('change', e => { const f = e.target.files[0]; if (f) handleImport(f); e.target.value = ''; });
+
+$('sheet').addEventListener('click', e => {
+  if (e.target === $('sheet')) { closeSheet(); return; }
+  const t = e.target.closest('button'); if (!t) return;
+  if (t.hasAttribute('data-close')) closeSheet();
+  if (t.dataset.edit){ closeSheet(); setTab('today'); setLogDate(parse(t.dataset.edit)); }
+  if (t.hasAttribute('data-setup')) openSetup();
+  if (t.dataset.pal){ state.profile.palette = t.dataset.pal; persist(); renderAll(); openSettings(); }
+  const act = t.dataset.act;
+  if (act === 'download') download();
+  if (act === 'copy') copyBackup();
+  if (act === 'import') $('fileInput').click();
+  if (act === 'import-cancel'){ pendingImport = null; $('importConfirm').innerHTML = ''; }
+  if (act === 'import-yes' && pendingImport){
+    state = pendingImport; state.weeks = state.weeks || {}; state.profile.palette = state.profile.palette || 'rg';
+    demo = false; pendingImport = null; persist(); closeSheet(); setLogDate(today()); renderAll(); toast(`Restored ${Object.keys(state.days).length} days`);
+  }
+  if (act === 'reset'){ $('resetConfirm').innerHTML = `<div class="card stack"><p style="margin:0">This deletes every logged day on this device. Download a backup first if you want to keep them.</p><div class="btn-row"><button class="ghost" data-act="reset-cancel">Keep my data</button><button class="ghost danger" data-act="reset-yes">Erase everything</button></div></div>`; }
+  if (act === 'reset-cancel') $('resetConfirm').innerHTML = '';
+  if (act === 'reset-yes'){ try { localStorage.removeItem(KEY); } catch(e){} state = makeDemo(); demo = true; closeSheet(); setLogDate(today()); renderAll(); toast('Erased. Showing sample data.'); }
+  if (t.id === 'suGo'){
+    const b = $('suBirth').value, h = clamp(+$('suHorizon').value || 80, 50, 110);
+    if (!b){ $('suErr').hidden = false; return; }
+    const keep = draft.s !== null ? {...draft} : null;
+    state = fresh(b, h); demo = false;
+    if (keep){ const e = {s: keep.s, at: new Date().toISOString()}; if (keep.n.trim()) e.n = keep.n.trim(); const tg = Object.fromEntries(Object.entries(keep.t).filter(([,v]) => v)); if (Object.keys(tg).length) e.t = tg; state.days[key(logDate)] = e; }
+    persist();
+    try { navigator.storage && navigator.storage.persist && navigator.storage.persist(); } catch(e){}
+    closeSheet(); setTab('today'); setLogDate(logDate); toast(keep ? 'Your grid has begun. Day one saved.' : 'Your grid has begun');
+  }
+});
+$('sheet').addEventListener('change', e => {
+  if (e.target.id === 'setBirth' && e.target.value){ state.profile.birth = e.target.value; persist(); render(); }
+  if (e.target.id === 'setHorizon'){ state.profile.horizon = clamp(+e.target.value || 80, 50, 110); persist(); render(); }
+});
+
+// re-render canvas on resize/theme change
+let rz; window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { if (tab === 'life') renderLife(); }, 150); });
+try { matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => tab === 'life' && renderLife()); } catch(e){}
+new MutationObserver(() => tab === 'life' && renderLife()).observe(document.documentElement, {attributes: true, attributeFilter: ['data-theme']});
+// new day while app is open
+document.addEventListener('visibilitychange', () => { if (!document.hidden && diffDays(logDate, today()) > EDIT_WINDOW) setLogDate(today()); });
+
+const h = (location.hash || '').slice(1);
+setLogDate(today());
+renderMark();
+setTab(['today','year','life','insights'].includes(h) ? h : 'today');
+})();
+</script>
+
+<script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));}</script>
+</body>
+</html>
